@@ -1,4 +1,4 @@
-module utilstool
+module github.com/renanzxc/BG-Helper/utils
 
 go 1.21.6
 

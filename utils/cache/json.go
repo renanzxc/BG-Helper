@@ -11,9 +11,10 @@ import (
 )
 
 type JSONCache struct {
-	cache *map[string]valueJSONCache
-	mutex sync.Mutex
-	file  *os.File
+	cache        *map[string]valueJSONCache
+	cacheChanged bool
+	mutex        sync.Mutex
+	filename     string
 }
 
 type valueJSONCache struct {
@@ -22,14 +23,29 @@ type valueJSONCache struct {
 }
 
 func NewJSONCache(cachePath string) (jsonCache *JSONCache, err error) {
-	var cache = make(map[string]valueJSONCache)
+	var (
+		cache    = make(map[string]valueJSONCache)
+		filename = path.Join(cachePath, "cache.json")
+	)
 
-	file, err := os.Create(path.Join(cachePath, "cache.json"))
-	if err != nil {
-		return nil, eris.Wrap(err, "Error on generate json cache")
+	if _, err = os.Stat(filename); err != nil {
+		if !os.IsNotExist(err) {
+			return nil, eris.Wrap(err, "Error on read json cache")
+		}
+		err = nil
+	} else {
+		var fileData []byte
+
+		if fileData, err = os.ReadFile(filename); err != nil {
+			return nil, eris.Wrap(err, "Error on read json cache")
+		}
+
+		if err = json.Unmarshal(fileData, &cache); err != nil {
+			return nil, eris.Wrap(err, "Error on read json cache")
+		}
 	}
 
-	jsonCache = &JSONCache{cache: &cache, file: file}
+	jsonCache = &JSONCache{cache: &cache, filename: filename}
 
 	return
 }
@@ -48,6 +64,7 @@ func (j *JSONCache) Set(ctx context.Context, key string, value []byte, shortTime
 	}
 	(*j.cache)[key] = valueJSONCache{Value: value, Exp: exp}
 
+	j.cacheChanged = true
 	return nil
 }
 
@@ -67,10 +84,17 @@ func (j *JSONCache) Get(ctx context.Context, key string) (bytes []byte, err erro
 }
 
 func (j *JSONCache) Down() (err error) {
-	defer j.file.Close()
+	if !j.cacheChanged {
+		return
+	}
+	
+	jsonStr, err := json.Marshal(j.cache)
+	if err != nil {
+		return eris.Wrap(err, "Error on save json cache")
+	}
 
-	encoder := json.NewEncoder(j.file)
-	if err = encoder.Encode(j.cache); err != nil {
+	err = os.WriteFile(j.filename, jsonStr, 0666)
+	if err != nil {
 		return eris.Wrap(err, "Error on save json cache")
 	}
 
