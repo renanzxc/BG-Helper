@@ -17,26 +17,31 @@ import (
 	"go.uber.org/zap"
 )
 
-type HTTP struct {
+type HTTP interface {
+	GetUserCollection(ctx context.Context, username string, useCache bool) (userCollection *CollectionXML, err error)
+	GetThing(ctx context.Context, id string, useCache bool) (thing *ThingsXML, err error)
+}
+
+type HTTPimp struct {
 	client  *http.Client
 	baseURL *url.URL
 	cache   cache.Cache
 }
 
-func NewBGGClient(cache cache.Cache) (*HTTP, error) {
+func NewBGGClient(cache cache.Cache) (*HTTPimp, error) {
 	baseURL, err := url.Parse("https://boardgamegeek.com/xmlapi2/")
 	if err != nil {
 		return nil, eris.Wrap(err, "Error on parse base URL")
 	}
 
-	return &HTTP{
+	return &HTTPimp{
 		client:  new(http.Client),
 		baseURL: baseURL,
 		cache:   cache,
 	}, nil
 }
 
-func (h *HTTP) GetUserCollection(ctx context.Context, username string, useCache bool) (userCollection *CollectionXML, err error) {
+func (h *HTTPimp) GetUserCollection(ctx context.Context, username string, useCache bool) (userCollection *CollectionXML, err error) {
 	var (
 		req  *http.Request
 		res  *http.Response
@@ -66,7 +71,37 @@ func (h *HTTP) GetUserCollection(ctx context.Context, username string, useCache 
 	return
 }
 
-func (h *HTTP) generateURL(urlIn string, params ...map[string][]string) string {
+func (h *HTTPimp) GetThing(ctx context.Context, id string, useCache bool) (thing *ThingsXML, err error) {
+	var (
+		req  *http.Request
+		res  *http.Response
+		body []byte
+	)
+
+	if req, err = h.newRequest(http.MethodGet, "/thing", map[string][]string{
+		"id": {id},
+	}, nil); err != nil {
+		return thing, eris.Wrap(err, "")
+	}
+
+	if res, err = h.do(ctx, req, useCache); err != nil {
+		return thing, eris.Wrap(err, "")
+	}
+
+	body, err = io.ReadAll(res.Body)
+	if err != nil {
+		return thing, eris.Wrap(err, "")
+	}
+
+	thing = new(ThingsXML)
+	if err = xml.Unmarshal(body, thing); err != nil {
+		return thing, eris.Wrap(err, "")
+	}
+
+	return
+}
+
+func (h *HTTPimp) generateURL(urlIn string, params ...map[string][]string) string {
 	var (
 		baseURL  = *h.baseURL
 		finalURL = &baseURL
@@ -81,11 +116,11 @@ func (h *HTTP) generateURL(urlIn string, params ...map[string][]string) string {
 	return finalURL.String()
 }
 
-func (h *HTTP) newRequest(method, url string, queryParams map[string][]string, body io.Reader) (req *http.Request, err error) {
+func (h *HTTPimp) newRequest(method, url string, queryParams map[string][]string, body io.Reader) (req *http.Request, err error) {
 	return http.NewRequest(method, h.generateURL(url, queryParams), body)
 }
 
-func (h *HTTP) do(ctx context.Context, req *http.Request, useCache bool) (res *http.Response, err error) {
+func (h *HTTPimp) do(ctx context.Context, req *http.Request, useCache bool) (res *http.Response, err error) {
 	var (
 		body        []byte
 		bodyStr     string
