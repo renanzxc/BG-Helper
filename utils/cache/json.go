@@ -87,7 +87,7 @@ func (j *JSONCache) Down() (err error) {
 	if !j.cacheChanged {
 		return
 	}
-	
+
 	jsonStr, err := json.Marshal(j.cache)
 	if err != nil {
 		return eris.Wrap(err, "Error on save json cache")

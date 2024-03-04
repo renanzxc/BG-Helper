@@ -54,7 +54,7 @@ func (h *HTTPimp) GetUserCollection(ctx context.Context, username string, useCac
 		return userCollection, eris.Wrap(err, "")
 	}
 
-	if res, err = h.do(ctx, req, useCache); err != nil {
+	if res, err = h.do(ctx, req, useCache, true); err != nil {
 		return userCollection, eris.Wrap(err, "")
 	}
 
@@ -84,7 +84,7 @@ func (h *HTTPimp) GetThing(ctx context.Context, id string, useCache bool) (thing
 		return thing, eris.Wrap(err, "")
 	}
 
-	if res, err = h.do(ctx, req, useCache); err != nil {
+	if res, err = h.do(ctx, req, useCache, false); err != nil {
 		return thing, eris.Wrap(err, "")
 	}
 
@@ -120,7 +120,7 @@ func (h *HTTPimp) newRequest(method, url string, queryParams map[string][]string
 	return http.NewRequest(method, h.generateURL(url, queryParams), body)
 }
 
-func (h *HTTPimp) do(ctx context.Context, req *http.Request, useCache bool) (res *http.Response, err error) {
+func (h *HTTPimp) do(ctx context.Context, req *http.Request, useCache bool, shortTimeCache bool) (res *http.Response, err error) {
 	var (
 		body        []byte
 		bodyStr     string
@@ -161,7 +161,7 @@ func (h *HTTPimp) do(ctx context.Context, req *http.Request, useCache bool) (res
 
 		if strings.Contains(bodyStr, "Rate limit exceeded.") {
 			zap.L().Debug("rate limit")
-			time.Sleep(time.Second * 3)
+			time.Sleep(time.Second * 10)
 			continue
 		}
 
@@ -170,7 +170,7 @@ func (h *HTTPimp) do(ctx context.Context, req *http.Request, useCache bool) (res
 		break
 	}
 
-	if err = h.cache.Set(ctx, reqCacheKey, body, true); err != nil {
+	if err = h.cache.Set(ctx, reqCacheKey, body, shortTimeCache); err != nil {
 		return nil, eris.Wrap(err, "Erro on cache")
 	}
 	zap.L().Debug(reqCacheKey + " cache created!")

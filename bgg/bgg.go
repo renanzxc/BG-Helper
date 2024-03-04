@@ -6,7 +6,7 @@ import (
 )
 
 type BGG interface {
-	MoreInfo(ctx context.Context, boardgame *Boardgame, useCache bool) (err error)
+	GetBoardgamesToPlayNextWithAnotherUser(ctx context.Context, username, anotherUsername string, useCache bool) (boardgames []OwnedBoardgame, err error)
 }
 
 type BGGimp struct {
@@ -15,6 +15,28 @@ type BGGimp struct {
 
 func NewBGG(http http.HTTP) *BGGimp {
 	return &BGGimp{bggHTTP: http}
+}
+
+func (b *BGGimp) GetBoardgamesToPlayNextWithAnotherUser(ctx context.Context, username, anotherUsername string, useCache bool) (boardgames []OwnedBoardgame, err error) {
+	col1, err := b.GetUserCollection(ctx, username, useCache)
+	if err != nil {
+		return nil, err
+	}
+	col2, err := b.GetUserCollection(ctx, anotherUsername, useCache)
+	if err != nil {
+		return nil, err
+	}
+	j1 := col1.WantToPlayInOwnedCollection(col2)
+	j2 := col2.WantToPlayInOwnedCollection(col1)
+	boardgames = append(j1, j2...)
+
+	for ii := range boardgames {
+		if err = b.MoreInfo(ctx, &boardgames[ii].Boardgame, useCache); err != nil {
+			return
+		}
+	}
+
+	return
 }
 
 func (b *BGGimp) GetUserCollection(ctx context.Context, username string, useCache bool) (collection *UserCollection, err error) {
