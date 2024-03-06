@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simple Table</title>
+    <title>Boardgames to play next with {{.AnotherPlayer}}</title>
     <style>
         table {
             border-collapse: collapse;
@@ -22,54 +22,47 @@
     </style>
 </head>
 <body>
-<h2>Play next boardgames</h2>
-<button onclick="downloadPNGFromAPI('http://localhost:1323/playnext//with//png', 'example.png')">Download</button>
-<table>
-    <thead>
-    <tr>
-<!--        <th>#</th>-->
-        <th>Name</th>
-        <th>Min/Max P</th>
-        <th>Best Num Players</th>
-        <th>Owned By</th>
-    </tr>
-    </thead>
-    <tbody>
-    {{range .Boardgames}}
-    <tr>
-        <td>{{.Name}}</td>
-        <td>{{.MinPlayers}}-{{.MaxPlayers}}</td>
-        <td>{{.BestNumPlayers}} ({{.BestNumPlayersVotes}})</td>
-        <td>{{.OwnedByUsername}}</td>
-    </tr>
-    {{end}}
-    </tbody>
-</table>
+    <h2>Boardgames to play next with {{.AnotherPlayer}}</h2>
+    <button id="btn-baixar">Download</button>
+    <table>
+        <thead>
+        <tr>
+    <!--        <th>#</th>-->
+            <th>Name</th>
+            <th>Min/Max P</th>
+            <th>Best Num Players</th>
+            <th>Owned By</th>
+        </tr>
+        </thead>
+        <tbody>
+        {{range .Boardgames}}
+        <tr>
+            <td>{{.Name}}</td>
+            <td>{{.MinPlayers}}-{{.MaxPlayers}}</td>
+            <td>{{.BestNumPlayers}} ({{.BestNumPlayersVotes}})</td>
+            <td>{{.OwnedByUsername}}</td>
+        </tr>
+        {{end}}
+        </tbody>
+    </table>
 </body>
 
+<script src="/files/html2canvas.min.js" type="text/javascript"></script>
 <script>
-    function downloadPNGFromAPI(apiURL, fileName) {
-        fetch(apiURL)
-            .then(response => response.blob())
-            .then(blob => {
-                // Create a blob URL for the PNG
-                const blobURL = window.URL.createObjectURL(blob);
-
-                // Create a link element
-                const link = document.createElement('a');
-                link.href = blobURL;
-                link.download = fileName;
-
-                // Trigger a click event to download the PNG
-                link.click();
-
-                // Cleanup
-                window.URL.revokeObjectURL(blobURL);
-            })
-            .catch(error => {
-                console.error('Error downloading PNG:', error);
-            });
-    }
+    document.getElementById("btn-baixar").addEventListener("click", () => {
+        html2canvas(document.body, {
+            logging: false
+        }).then(
+            (canvas) => {
+                let anchorTag = document.createElement("a");
+                document.body.appendChild(anchorTag);
+                anchorTag.download = "filename.jpg";
+                anchorTag.href = canvas.toDataURL();
+                anchorTag.target = "_blank";
+                anchorTag.click();
+            }
+        );
+    });
 </script>
 
 </html>

@@ -44,6 +44,7 @@ func (h *HTTPHTML) Setup() (err error) {
 	h.echo.GET("/playnext/:username/with/:another_player", func(c echo.Context) error {
 		return playnext(c, h)
 	})
+	h.echo.GET("/files/*", echo.WrapHandler(http.StripPrefix("/files/", http.FileServer(http.Dir("./files")))))
 
 	actualPath, err := os.Getwd()
 	if err != nil {
