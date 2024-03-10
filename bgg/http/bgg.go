@@ -79,7 +79,8 @@ func (h *HTTPimp) GetThing(ctx context.Context, id string, useCache bool) (thing
 	)
 
 	if req, err = h.newRequest(http.MethodGet, "/thing", map[string][]string{
-		"id": {id},
+		"id":    {id},
+		"stats": {"1"},
 	}, nil); err != nil {
 		return thing, eris.Wrap(err, "")
 	}
@@ -155,6 +156,7 @@ func (h *HTTPimp) do(ctx context.Context, req *http.Request, useCache bool, shor
 
 		bodyStr = string(body)
 		if strings.Contains(bodyStr, "Please try again later for access.") {
+			zap.L().Debug("processing req")
 			time.Sleep(time.Second * 3)
 			continue
 		}

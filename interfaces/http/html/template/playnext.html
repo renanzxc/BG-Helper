@@ -19,27 +19,37 @@
         th {
             background-color: #f2f2f2;
         }
+
+        .match_num_players {
+            background-color: gray;
+            color: white;
+        }
     </style>
 </head>
 <body>
     <h2>Boardgames to play next with {{.AnotherPlayer}}</h2>
-    <button id="btn-baixar">Download</button>
+    <input  id="num_players" type="number" class="filter" {{if ne .NumPlayersFilter ``}} value="{{.NumPlayersFilter}}" {{end}} />
+    <button id="btn-filter">Filter</button>
+    <button id="btn-download">Download</button>
     <table>
         <thead>
         <tr>
-    <!--        <th>#</th>-->
             <th>Name</th>
-            <th>Min/Max P</th>
+            <th>Min/Max Players</th>
             <th>Best Num Players</th>
+            <th>Min/Max Time (m)</th>
+            <th>Average Weight</th>
             <th>Owned By</th>
         </tr>
         </thead>
         <tbody>
         {{range .Boardgames}}
-        <tr>
+        <tr {{if eq .BestNumPlayers $.NumPlayersFilter}} class="match_num_players" {{end}} >
             <td>{{.Name}}</td>
-            <td>{{.MinPlayers}}-{{.MaxPlayers}}</td>
+            <td>{{.MinPlayers}} - {{.MaxPlayers}}</td>
             <td>{{.BestNumPlayers}} ({{.BestNumPlayersVotes}})</td>
+            <td> {{if eq .MinPlayTime .MaxPlayTime}} {{.MinPlayTime}} {{else}} {{.MinPlayTime}} - {{.MaxPlayTime}} {{end}}</td>
+            <td>{{.AverageWeight}}</td>
             <td>{{.OwnedByUsername}}</td>
         </tr>
         {{end}}
@@ -49,9 +59,10 @@
 
 <script src="/files/html2canvas.min.js" type="text/javascript"></script>
 <script>
-    document.getElementById("btn-baixar").addEventListener("click", () => {
+    document.getElementById("btn-download").addEventListener("click", () => {
         html2canvas(document.body, {
-            logging: false
+            logging: false,
+            windowWidth: 700
         }).then(
             (canvas) => {
                 let anchorTag = document.createElement("a");
@@ -63,6 +74,37 @@
             }
         );
     });
+    document.getElementById("btn-filter").addEventListener("click", () => {
+        let queryParams = new URLSearchParams(window.location.search);
+        document.querySelectorAll(".filter").forEach(
+            (element) =>
+                queryParams.set(element.id, element.value)
+        );
+        history.replaceState(null, null, "?"+queryParams.toString());
+
+        // URL da API que responde com HTML
+        var apiUrl = window.location.href;
+
+        // Fazer uma requisição para a API usando fetch
+        fetch(apiUrl)
+            .then(response => {
+                // Verificar se a resposta da API está OK
+                if (!response.ok) {
+                    throw new Error('Falha na requisição para a API');
+                }
+                // Retornar o conteúdo da resposta como texto
+                return response.text();
+            })
+            .then(html => {
+                // Exibir o HTML retornado pela API na página
+                document.open();
+                document.write(html);
+                document.close();
+            })
+            .catch(error => {
+                console.error('Erro:', error);
+            });
+    })
 </script>
 
 </html>

@@ -23,11 +23,12 @@ func playnext(c echo.Context, h *HTTPHTML) error {
 
 func playNextHTML(c echo.Context, h *HTTPHTML, writer io.Writer) (err error) {
 	var (
-		bgghttpImp    bgghttp.HTTP
-		bggImp        bgg.BGG
-		tmpl          *template.Template
-		username      = c.Param("username")
-		anotherPlayer = c.Param("another_player")
+		bgghttpImp       bgghttp.HTTP
+		bggImp           bgg.BGG
+		tmpl             *template.Template
+		username         = c.Param("username")
+		anotherPlayer    = c.Param("another_player")
+		numPlayersFilter = c.QueryParam("num_players")
 	)
 
 	if bgghttpImp, err = bgghttp.NewBGGClient(h.cache); err != nil {
@@ -49,10 +50,12 @@ func playNextHTML(c echo.Context, h *HTTPHTML, writer io.Writer) (err error) {
 	}
 
 	return eris.Wrap(tmpl.Execute(writer, struct {
-		Boardgames    []bgg.OwnedBoardgame
-		AnotherPlayer string
+		Boardgames       []bgg.OwnedBoardgame
+		AnotherPlayer    string
+		NumPlayersFilter string
 	}{
-		Boardgames:    boardgames,
-		AnotherPlayer: anotherPlayer,
+		Boardgames:       boardgames,
+		AnotherPlayer:    anotherPlayer,
+		NumPlayersFilter: numPlayersFilter,
 	}), "")
 }

@@ -3,6 +3,7 @@ package bgg
 import (
 	"context"
 	"github.com/renanzxc/BG-Helper/bgg/http"
+	"math"
 )
 
 type BGG interface {
@@ -98,6 +99,9 @@ func (b *BGGimp) MoreInfo(ctx context.Context, boardgame *Boardgame, useCache bo
 	boardgame.MaxPlayers = thing.Items[0].MaxPlayers.Value
 	boardgame.BestNumPlayers = best.NumPlayers
 	boardgame.BestNumPlayersVotes = numVotesBest
+	boardgame.MaxPlayTime = thing.Items[0].MaxPlayTime.Value
+	boardgame.MinPlayTime = thing.Items[0].MinPlayTime.Value
+	boardgame.AverageWeight = math.Round(thing.Items[0].Statistics[0].Ratings[0].AverageWeight.Value*100) / 100
 
 	return
 }

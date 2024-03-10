@@ -40,20 +40,21 @@ type ThingsXML struct {
 }
 
 type ThingItemXML struct {
-	Type          string         `xml:"type,attr"`
-	ID            int            `xml:"id,attr"`
-	Thumbnail     string         `xml:"thumbnail"`
-	Image         string         `xml:"image"`
-	Name          []ThingNameXML `xml:"name"`
-	Description   string         `xml:"description"`
-	YearPublished ThingYearXML   `xml:"yearpublished"`
-	MinPlayers    ThingMinMaxXML `xml:"minplayers"`
-	MaxPlayers    ThingMinMaxXML `xml:"maxplayers"`
-	PlayingTime   ThingMinMaxXML `xml:"playingtime"`
-	MinPlayTime   ThingMinMaxXML `xml:"minplaytime"`
-	MaxPlayTime   ThingMinMaxXML `xml:"maxplaytime"`
-	MinAge        ThingMinMaxXML `xml:"minage"`
-	Poll          []ThingPollXML `xml:"poll"`
+	Type          string               `xml:"type,attr"`
+	ID            int                  `xml:"id,attr"`
+	Thumbnail     string               `xml:"thumbnail"`
+	Image         string               `xml:"image"`
+	Name          []ThingNameXML       `xml:"name"`
+	Description   string               `xml:"description"`
+	YearPublished ThingYearXML         `xml:"yearpublished"`
+	MinPlayers    ThingMinMaxXML       `xml:"minplayers"`
+	MaxPlayers    ThingMinMaxXML       `xml:"maxplayers"`
+	PlayingTime   ThingMinMaxXML       `xml:"playingtime"`
+	MinPlayTime   ThingMinMaxXML       `xml:"minplaytime"`
+	MaxPlayTime   ThingMinMaxXML       `xml:"maxplaytime"`
+	MinAge        ThingMinMaxXML       `xml:"minage"`
+	Poll          []ThingPollXML       `xml:"poll"`
+	Statistics    []ThingStatisticsXML `xml:"statistics"`
 }
 
 type ThingPollXML struct {
@@ -66,6 +67,14 @@ type ThingPollXML struct {
 type ThingResultsXML struct {
 	NumPlayers string           `xml:"numplayers,attr"`
 	Results    []ThingResultXML `xml:"result"`
+}
+
+type ThingStatisticsXML struct {
+	Ratings []ThingRatingsXML `xml:"ratings"`
+}
+
+type ThingRatingsXML struct {
+	AverageWeight AverageWeightXML `xml:"averageweight"`
 }
 
 func (t *ThingResultsXML) GetBestNumVotes() int {
@@ -95,4 +104,8 @@ type ThingYearXML struct {
 
 type ThingMinMaxXML struct {
 	Value int `xml:"value,attr"`
+}
+
+type AverageWeightXML struct {
+	Value float64 `xml:"value,attr"`
 }

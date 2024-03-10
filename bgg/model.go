@@ -6,8 +6,11 @@ type Boardgame struct {
 	NumPlays            int
 	MinPlayers          int
 	MaxPlayers          int
+	MinPlayTime         int
+	MaxPlayTime         int
 	BestNumPlayers      string
 	BestNumPlayersVotes int
+	AverageWeight       float64
 }
 
 type OwnedBoardgame struct {
