@@ -4,34 +4,29 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Boardgames to play next with {{.AnotherPlayer}}</title>
+    <link rel="stylesheet" href="/files/bulma.min.css">
     <style>
         table {
-            border-collapse: collapse;
             width: 100%;
-        }
-
-        th, td {
-            border: 1px solid #dddddd;
-            text-align: left;
-            padding: 8px;
         }
 
         th {
             background-color: #f2f2f2;
         }
 
-        .match_num_players {
-            background-color: gray;
-            color: white;
+        .filter{
+            width: 100px;
         }
     </style>
 </head>
 <body>
-    <h2>Boardgames to play next with {{.AnotherPlayer}}</h2>
-    <input  id="num_players" type="number" class="filter" {{if ne .NumPlayersFilter ``}} value="{{.NumPlayersFilter}}" {{end}} />
-    <button id="btn-filter">Filter</button>
-    <button id="btn-download">Download</button>
-    <table>
+    <h2 class="title" style="padding: 10px 0px 0px 10px">Boardgames to play next with {{.AnotherPlayer}}</h2>
+    <div style="padding: 10px 0px 10px 10px">
+        <input  id="num_players" type="number" non-zero class="filter input is-small" {{if ne .NumPlayersFilter ``}} value="{{.NumPlayersFilter}}" {{end}} />
+        <button id="btn-filter" class="button is-small">Filter</button>
+        <button id="btn-download" class="button is-small">Download</button>
+    </div>
+    <table class="table">
         <thead>
         <tr>
             <th>Name</th>
@@ -44,8 +39,8 @@
         </thead>
         <tbody>
         {{range .Boardgames}}
-        <tr {{if eq .BestNumPlayers $.NumPlayersFilter}} class="match_num_players" {{end}} >
-            <td>{{.Name}}</td>
+        <tr {{if eq .BestNumPlayers $.NumPlayersFilter}} class="is-selected" {{end}} >
+            <td> <a target=”_blank” href="https://boardgamegeek.com/boardgame/{{.ObjectID}}/blackout-hong-kong"> {{.Name}} </a> </td>
             <td>{{.MinPlayers}} - {{.MaxPlayers}}</td>
             <td>{{.BestNumPlayers}} ({{.BestNumPlayersVotes}})</td>
             <td> {{if eq .MinPlayTime .MaxPlayTime}} {{.MinPlayTime}} {{else}} {{.MinPlayTime}} - {{.MaxPlayTime}} {{end}}</td>
@@ -77,9 +72,16 @@
     document.getElementById("btn-filter").addEventListener("click", () => {
         let queryParams = new URLSearchParams(window.location.search);
         document.querySelectorAll(".filter").forEach(
-            (element) =>
-                queryParams.set(element.id, element.value)
-        );
+            (element) => {
+                if (element.hasAttribute("non-zero") &&
+                    queryParams.has(element.id) &&
+                    (element.value == 0.0 || element.value == "") ){
+                        queryParams.delete(element.id)
+                } else {
+                    queryParams.set(element.id, element.value)
+                }
+            });
+
         history.replaceState(null, null, "?"+queryParams.toString());
 
         // URL da API que responde com HTML
