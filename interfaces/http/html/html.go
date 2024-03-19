@@ -6,8 +6,6 @@ import (
 	bgghttp "github.com/renanzxc/BG-Helper/bgg/http"
 	"github.com/rotisserie/eris"
 	"io"
-	"path"
-
 	"sort"
 	"text/template"
 )
@@ -45,7 +43,12 @@ func playNextHTML(c echo.Context, h *HTTPHTML, writer io.Writer) (err error) {
 		return boardgames[i].Name < boardgames[j].Name
 	})
 
-	if tmpl, err = template.ParseFiles(path.Join(h.basePathTemplates, "playnext.html")); err != nil {
+	// TODO: read file only one time
+	file, err := content.ReadFile("templates/playnext.html")
+	if err != nil {
+		return eris.Wrap(err, "")
+	}
+	if tmpl, err = template.New("playnext").Parse(string(file)); err != nil {
 		return eris.Wrap(err, "")
 	}
 

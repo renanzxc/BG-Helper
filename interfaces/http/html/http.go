@@ -1,14 +1,16 @@
 package main
 
 import (
+	"embed"
 	"fmt"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/renanzxc/BG-Helper/utils/cache"
+	"github.com/rotisserie/eris"
+	"io/fs"
 	"net/http"
 	"os"
 	"os/signal"
-	"path"
 	"syscall"
 )
 
@@ -19,11 +21,16 @@ type HTTPHTML struct {
 	cache cache.Cache
 }
 
+var (
+	//go:embed templates/*.html static/*
+	content embed.FS
+)
+
 func (h *HTTPHTML) Setup() (err error) {
 	h.echo = echo.New()
 	h.cache, err = cache.NewJSONCache("./")
 	if err != nil {
-		return
+		return eris.Wrap(err, "")
 	}
 
 	h.echo.Use(middleware.Logger())
@@ -36,6 +43,8 @@ func (h *HTTPHTML) Setup() (err error) {
 	})
 	// TODO: Refactor
 	h.echo.HTTPErrorHandler = func(err error, c echo.Context) {
+		c.Logger().Error(eris.ToJSON(err, true))
+
 		c.JSON(http.StatusBadRequest, map[string]interface{}{
 			"error": err.Error(),
 		})
@@ -44,14 +53,14 @@ func (h *HTTPHTML) Setup() (err error) {
 	h.echo.GET("/playnext/:username/with/:another_player", func(c echo.Context) error {
 		return playnext(c, h)
 	})
-	h.echo.GET("/files/*", echo.WrapHandler(http.StripPrefix("/files/", http.FileServer(http.Dir("./files")))))
 
-	actualPath, err := os.Getwd()
+	staticFS, err := fs.Sub(content, "static")
 	if err != nil {
-		return
+		return eris.Wrap(err, "")
 	}
 
-	h.basePathTemplates = path.Join(actualPath, "/template")
+	staticHandler := http.FileServer(http.FS(staticFS))
+	h.echo.GET("/static/*", echo.WrapHandler(http.StripPrefix("/static/", staticHandler)))
 
 	return
 }

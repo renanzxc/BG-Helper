@@ -146,18 +146,18 @@ func (h *HTTPimp) do(ctx context.Context, req *http.Request, useCache bool, shor
 	for {
 		zap.L().Debug("Exec req " + reqCacheKey)
 		if res, err = h.client.Do(req); err != nil {
-			return
+			return res, eris.Wrap(err, "Erro do request")
 		}
 
 		body, err = io.ReadAll(res.Body)
 		if err != nil {
-			panic(err)
+			return res, eris.Wrap(err, "Erro on read body")
 		}
 
 		bodyStr = string(body)
 		if strings.Contains(bodyStr, "Please try again later for access.") {
 			zap.L().Debug("processing req")
-			time.Sleep(time.Second * 3)
+			time.Sleep(time.Second * 10)
 			continue
 		}
 
