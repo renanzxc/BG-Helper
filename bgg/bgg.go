@@ -32,7 +32,8 @@ func (b *BGGimp) GetBoardgamesToPlayNextWithAnotherUser(ctx context.Context, use
 	boardgames = append(j1, j2...)
 
 	for ii := range boardgames {
-		if err = b.MoreInfo(ctx, &boardgames[ii].Boardgame, useCache); err != nil {
+		// Always use boardgame cache
+		if err = b.MoreInfo(ctx, &boardgames[ii].Boardgame, true); err != nil {
 			return
 		}
 	}

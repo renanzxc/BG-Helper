@@ -25,6 +25,7 @@
         <input  id="num_players" type="number" non-zero class="filter input is-small" {{if ne .NumPlayersFilter ``}} value="{{.NumPlayersFilter}}" {{end}} />
         <button id="btn-filter" class="button is-small">Filter</button>
         <button id="btn-download" class="button is-small">Download</button>
+        <button id="btn-reload-cache" class="button is-small">Reload cache</button>
     </div>
     <table class="table">
         <thead>
@@ -40,7 +41,7 @@
         <tbody>
         {{range .Boardgames}}
         <tr {{if eq .BestNumPlayers $.NumPlayersFilter}} class="is-selected" {{end}} >
-            <td> <a target=”_blank” href="https://boardgamegeek.com/boardgame/{{.ObjectID}}/blackout-hong-kong"> {{.Name}} </a> </td>
+            <td> <a target=”_blank” href="https://boardgamegeek.com/boardgame/{{.ObjectID}}"> {{.Name}}</a> </td>
             <td>{{.MinPlayers}} - {{.MaxPlayers}}</td>
             <td>{{.BestNumPlayers}} ({{.BestNumPlayersVotes}})</td>
             <td> {{if eq .MinPlayTime .MaxPlayTime}} {{.MinPlayTime}} {{else}} {{.MinPlayTime}} - {{.MaxPlayTime}} {{end}}</td>
@@ -86,6 +87,34 @@
 
         // URL da API que responde com HTML
         var apiUrl = window.location.href;
+
+        // Fazer uma requisição para a API usando fetch
+        fetch(apiUrl)
+            .then(response => {
+                // Verificar se a resposta da API está OK
+                if (!response.ok) {
+                    throw new Error('Falha na requisição para a API');
+                }
+                // Retornar o conteúdo da resposta como texto
+                return response.text();
+            })
+            .then(html => {
+                // Exibir o HTML retornado pela API na página
+                document.open();
+                document.write(html);
+                document.close();
+            })
+            .catch(error => {
+                console.error('Erro:', error);
+            });
+    })
+
+    document.getElementById("btn-reload-cache").addEventListener("click", () => {
+        let queryParams = new URLSearchParams(window.location.search);
+        let urlBase = window.location.href.split('?')[0]
+        queryParams.set("reload_cache", true)
+        // URL da API que responde com HTML
+        let apiUrl = urlBase+"?"+queryParams.toString();
 
         // Fazer uma requisição para a API usando fetch
         fetch(apiUrl)

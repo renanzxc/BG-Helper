@@ -3,6 +3,7 @@ package main
 import (
 	"embed"
 	"fmt"
+	"github.com/go-playground/validator/v10"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/renanzxc/BG-Helper/utils/cache"
@@ -18,7 +19,8 @@ type HTTPHTML struct {
 	echo              *echo.Echo
 	basePathTemplates string
 
-	cache cache.Cache
+	cache    cache.Cache
+	validate *validator.Validate
 }
 
 var (
@@ -27,12 +29,13 @@ var (
 )
 
 func (h *HTTPHTML) Setup() (err error) {
-	h.echo = echo.New()
 	h.cache, err = cache.NewJSONCache("./")
 	if err != nil {
 		return eris.Wrap(err, "")
 	}
+	h.validate = validator.New(validator.WithRequiredStructEnabled())
 
+	h.echo = echo.New()
 	h.echo.Use(middleware.Logger())
 	h.echo.Use(middleware.Recover())
 	h.echo.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
@@ -43,7 +46,7 @@ func (h *HTTPHTML) Setup() (err error) {
 	})
 	// TODO: Refactor
 	h.echo.HTTPErrorHandler = func(err error, c echo.Context) {
-		c.Logger().Error(eris.ToJSON(err, true))
+		c.Logger().Error(eris.ToString(err, true))
 
 		c.JSON(http.StatusBadRequest, map[string]interface{}{
 			"error": err.Error(),

@@ -21,13 +21,29 @@ func playnext(c echo.Context, h *HTTPHTML) error {
 
 func playNextHTML(c echo.Context, h *HTTPHTML, writer io.Writer) (err error) {
 	var (
-		bgghttpImp       bgghttp.HTTP
-		bggImp           bgg.BGG
-		tmpl             *template.Template
-		username         = c.Param("username")
-		anotherPlayer    = c.Param("another_player")
-		numPlayersFilter = c.QueryParam("num_players")
+		bgghttpImp bgghttp.HTTP
+		bggImp     bgg.BGG
+		tmpl       *template.Template
+		useCache   = true
+		reqParams  struct {
+			Username      string `param:"username" validate:"required"`
+			AnotherPlayer string `param:"another_player"`
+			ReloadCache   *bool  `query:"reload_cache"`
+			NumPlayers    string `query:"num_players"`
+		}
 	)
+
+	if err = c.Bind(&reqParams); err != nil {
+		return eris.Wrap(err, "")
+	}
+
+	if err = h.validate.Struct(&reqParams); err != nil {
+		return eris.Wrap(err, "")
+	}
+
+	if reqParams.ReloadCache != nil {
+		useCache = !*reqParams.ReloadCache
+	}
 
 	if bgghttpImp, err = bgghttp.NewBGGClient(h.cache); err != nil {
 		return
@@ -35,7 +51,7 @@ func playNextHTML(c echo.Context, h *HTTPHTML, writer io.Writer) (err error) {
 
 	bggImp = bgg.NewBGG(bgghttpImp)
 
-	boardgames, err := bggImp.GetBoardgamesToPlayNextWithAnotherUser(c.Request().Context(), username, anotherPlayer, true)
+	boardgames, err := bggImp.GetBoardgamesToPlayNextWithAnotherUser(c.Request().Context(), reqParams.Username, reqParams.AnotherPlayer, useCache)
 	if err != nil {
 		return
 	}
@@ -58,7 +74,7 @@ func playNextHTML(c echo.Context, h *HTTPHTML, writer io.Writer) (err error) {
 		NumPlayersFilter string
 	}{
 		Boardgames:       boardgames,
-		AnotherPlayer:    anotherPlayer,
-		NumPlayersFilter: numPlayersFilter,
+		AnotherPlayer:    reqParams.AnotherPlayer,
+		NumPlayersFilter: reqParams.NumPlayers,
 	}), "")
 }
