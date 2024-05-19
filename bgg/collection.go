@@ -22,8 +22,9 @@ func (col *UserCollection) WantToPlayInOwnedCollection(colIn *UserCollection) (b
 		boardgameColIn, ok := colIn.Owned[boardgameID]
 		if ok {
 			boardgames = append(boardgames, OwnedBoardgame{
-				Boardgame:       boardgameColIn,
-				OwnedByUsername: colIn.Username,
+				Boardgame:             boardgameColIn,
+				OwnedByUsername:       colIn.Username,
+				OwndedNotPlayThisGame: boardgameColIn.NumPlays == 0,
 			})
 		}
 	}

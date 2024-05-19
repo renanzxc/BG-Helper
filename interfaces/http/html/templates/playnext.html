@@ -22,7 +22,7 @@
 <body>
     <h2 class="title" style="padding: 10px 0px 0px 10px">Boardgames to play next with {{.AnotherPlayer}}</h2>
     <div style="padding: 10px 0px 10px 10px">
-        <input  id="num_players" type="number" non-zero class="filter input is-small" {{if ne .NumPlayersFilter ``}} value="{{.NumPlayersFilter}}" {{end}} />
+        <input  id="num_players" type="number" min="0" non-zero class="filter input is-small" {{if ne .NumPlayersFilter ``}} value="{{.NumPlayersFilter}}" {{end}} />
         <button id="btn-filter" class="button is-small">Filter</button>
         <button id="btn-download" class="button is-small">Download</button>
         <button id="btn-reload-cache" class="button is-small">Reload cache</button>
@@ -41,8 +41,8 @@
         <tbody>
         {{range .Boardgames}}
         <tr {{if eq .BestNumPlayers $.NumPlayersFilter}} class="is-selected" {{end}} >
-            <td> <a target=”_blank” href="https://boardgamegeek.com/boardgame/{{.ObjectID}}"> {{.Name}}</a> </td>
-            <td>{{.MinPlayers}} - {{.MaxPlayers}}</td>
+            <td> <a target=”_blank” href="https://boardgamegeek.com/boardgame/{{.ObjectID}}"> {{.Name}} {{if .OwndedNotPlayThisGame}}←{{end}}</a> </td>
+            <td> {{if eq .MinPlayers .MaxPlayers}} {{.MinPlayers}} {{else}} {{.MinPlayers}} - {{.MaxPlayers}} {{end}}</td>
             <td>{{.BestNumPlayers}} ({{.BestNumPlayersVotes}})</td>
             <td> {{if eq .MinPlayTime .MaxPlayTime}} {{.MinPlayTime}} {{else}} {{.MinPlayTime}} - {{.MaxPlayTime}} {{end}}</td>
             <td>{{.AverageWeight}}</td>

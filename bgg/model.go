@@ -15,5 +15,6 @@ type Boardgame struct {
 
 type OwnedBoardgame struct {
 	Boardgame
-	OwnedByUsername string
+	OwnedByUsername       string
+	OwndedNotPlayThisGame bool
 }
