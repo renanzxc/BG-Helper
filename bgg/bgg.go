@@ -3,11 +3,14 @@ package bgg
 import (
 	"context"
 	"github.com/renanzxc/BG-Helper/bgg/http"
+	"github.com/renanzxc/BG-Helper/watcher"
 	"math"
+	"strconv"
+	"time"
 )
 
 type BGG interface {
-	GetBoardgamesToPlayNextWithAnotherUser(ctx context.Context, username, anotherUsername string, useCache bool) (boardgames []OwnedBoardgame, err error)
+	GetBoardgamesToPlayNextWithAnotherUser(ctx context.Context, username, anotherUsername string, useCache bool) (boardgames OwnedBoardgames, err error)
 }
 
 type BGGimp struct {
@@ -18,24 +21,83 @@ func NewBGG(http http.HTTP) *BGGimp {
 	return &BGGimp{bggHTTP: http}
 }
 
-func (b *BGGimp) GetBoardgamesToPlayNextWithAnotherUser(ctx context.Context, username, anotherUsername string, useCache bool) (boardgames []OwnedBoardgame, err error) {
-	col1, err := b.GetUserCollection(ctx, username, useCache)
-	if err != nil {
-		return nil, err
-	}
-	col2, err := b.GetUserCollection(ctx, anotherUsername, useCache)
-	if err != nil {
-		return nil, err
-	}
-	j1 := col1.WantToPlayInOwnedCollection(col2)
-	j2 := col2.WantToPlayInOwnedCollection(col1)
-	boardgames = append(j1, j2...)
+var watcherBGG = watcher.NewWatcher()
 
-	for ii := range boardgames {
-		// Always use boardgame cache
-		if err = b.MoreInfo(ctx, &boardgames[ii].Boardgame, true); err != nil {
+func (b *BGGimp) GetBoardgamesToPlayNextWithAnotherUser(ctx context.Context, username, anotherUsername string, useCache bool) (ownedBoardgames OwnedBoardgames, err error) {
+	var (
+		col1, col2 *UserCollection
+		process    *watcher.Process
+		exists     bool
+	)
+	exists, process = watcherBGG.CheckProcessExists(username + strconv.FormatBool(useCache))
+	if exists {
+		if process.Finished() {
+			ownedBoardgames = process.Return.(OwnedBoardgames)
+			watcherBGG.RemoveProcess(process.ID)
+			return
+		} else {
+			ownedBoardgames.State, ownedBoardgames.Percentage = process.GetStatePercentage()
 			return
 		}
+	}
+
+	watcherBGG.AddProcess(process)
+
+	process.AddWork(&watcher.Work{
+		ID: "get user col1",
+		FuncWork: func(work *watcher.Work) (interface{}, error) {
+			col1, err = b.GetUserCollection(ctx, username, useCache)
+			if err != nil {
+				return nil, err
+			}
+
+			return col1, nil
+		},
+	})
+
+	process.AddWork(&watcher.Work{
+		ID: "get user col2",
+		FuncWork: func(work *watcher.Work) (interface{}, error) {
+			col2, err = b.GetUserCollection(ctx, anotherUsername, useCache)
+			if err != nil {
+				return nil, err
+			}
+
+			return col1, nil
+		},
+	})
+
+	process.AddWork(&watcher.Work{
+		ID: "check games",
+		FuncWork: func(work *watcher.Work) (interface{}, error) {
+			j1 := col1.WantToPlayInOwnedCollection(col2)
+			j2 := col2.WantToPlayInOwnedCollection(col1)
+			ownedBoardgames.Boardgames = append(j1, j2...)
+
+			return nil, nil
+		},
+	})
+
+	process.AddWork(&watcher.Work{
+		ID: "more info games",
+		FuncWork: func(work *watcher.Work) (interface{}, error) {
+			for ii := range ownedBoardgames.Boardgames {
+				// Always use boardgame cache
+				if err = b.MoreInfo(ctx, &ownedBoardgames.Boardgames[ii].Boardgame, true); err != nil {
+					return nil, err
+				}
+			}
+
+			return ownedBoardgames, nil
+		},
+	})
+
+	process.InitProcess()
+	time.Sleep(time.Second * 1)
+	if process.Finished() {
+		ownedBoardgames.State, ownedBoardgames.Percentage = process.GetStatePercentage()
+		ownedBoardgames = process.Return.(OwnedBoardgames)
+		watcherBGG.RemoveProcess(process.ID)
 	}
 
 	return

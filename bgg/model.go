@@ -1,5 +1,7 @@
 package bgg
 
+import "github.com/renanzxc/BG-Helper/watcher"
+
 type Boardgame struct {
 	ObjectID            string
 	Name                string
@@ -17,4 +19,9 @@ type OwnedBoardgame struct {
 	Boardgame
 	OwnedByUsername       string
 	OwndedNotPlayThisGame bool
+}
+
+type OwnedBoardgames struct {
+	watcher.ProcessReturn
+	Boardgames []OwnedBoardgame
 }
