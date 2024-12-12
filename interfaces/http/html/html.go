@@ -1,11 +1,13 @@
 package main
 
 import (
+	"bytes"
 	"github.com/labstack/echo/v4"
 	"github.com/renanzxc/BG-Helper/bgg"
 	bgghttp "github.com/renanzxc/BG-Helper/bgg/http"
 	"github.com/rotisserie/eris"
 	"io"
+	"net/http"
 	"sort"
 	"text/template"
 )
@@ -17,6 +19,22 @@ func playnext(c echo.Context, h *HTTPHTML) error {
 	}
 
 	return nil
+}
+
+func playnextPDF(c echo.Context, h *HTTPHTML) error {
+	buf := new(bytes.Buffer)
+
+	err := playNextHTML(c, h, buf)
+	if err != nil {
+		return err
+	}
+
+	var pdfData []byte
+	if pdfData, err = GeneratePDF(buf.String(), "low-quality"); err != nil {
+		return err
+	}
+	//c.Response().Header().Set(echo.HeaderContentDisposition, "attachment; filename=play.pdf")
+	return c.Blob(http.StatusOK, "application/pdf", pdfData)
 }
 
 func playNextHTML(c echo.Context, h *HTTPHTML, writer io.Writer) (err error) {

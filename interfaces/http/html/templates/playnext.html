@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Boardgames to play next with {{.AnotherPlayer}}</title>
-    <link rel="stylesheet" href="/static/bulma.min.css">
+    <link rel="stylesheet" href="http://localhost:1323/static/bulma.min.css">
     <style>
         table {
             width: 100%;
@@ -24,7 +24,8 @@
     <div style="padding: 10px 0px 10px 10px">
         <input  id="num_players" type="number" min="0" non-zero class="filter input is-small" {{if ne .NumPlayersFilter ``}} value="{{.NumPlayersFilter}}" {{end}} />
         <button id="btn-filter" class="button is-small">Filter</button>
-        <button id="btn-download" class="button is-small">Download</button>
+        <button id="btn-download-img" class="button is-small">Download image</button>
+        <button id="btn-download-pdf" class="button is-small">Download pdf</button>
         <button id="btn-reload-cache" class="button is-small">Reload cache</button>
     </div>
     <table class="table">
@@ -53,9 +54,44 @@
     </table>
 </body>
 
-<script src="/static/html2canvas.min.js" type="text/javascript"></script>
+<script src="http://localhost:1323/static/html2canvas.min.js" type="text/javascript"></script>
 <script>
-    document.getElementById("btn-download").addEventListener("click", () => {
+    function getApiURL(appendUrl, queryParams){
+        let urlBase = window.location.href.split('?')[0]
+        // URL da API que responde com HTML
+        let apiUrl = urlBase + appendUrl
+
+        if (queryParams) {
+            let queryParams = new URLSearchParams(window.location.search);
+            apiUrl = apiUrl+"?"+queryParams.toString();
+        }
+        console.log(apiUrl)
+
+        return URL.parse(apiUrl)
+    }
+    document.getElementById("btn-download-pdf").addEventListener("click", async () => {
+        let apiUrl= getApiURL("/pdf",true)
+        try {
+            const response = await fetch(apiUrl.toString());
+            if (!response.ok) {
+                throw new Error(`HTTP error ${response.status}`);
+            }
+
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+
+            // Open in new tab
+            window.open(url, '_blank');
+
+            // Clean up (important to prevent memory leaks!)
+            window.URL.revokeObjectURL(url);
+
+        } catch (error) {
+            console.error('Error downloading PDF:', error);
+            // Handle error as needed, e.g., display a message to the user
+        }
+    });
+    document.getElementById("btn-download-img").addEventListener("click", () => {
         html2canvas(document.body, {
             logging: false,
             windowWidth: 700

@@ -56,6 +56,9 @@ func (h *HTTPHTML) Setup() (err error) {
 	h.echo.GET("/playnext/:username/with/:another_player", func(c echo.Context) error {
 		return playnext(c, h)
 	})
+	h.echo.GET("/playnext/:username/with/:another_player/pdf", func(c echo.Context) error {
+		return playnextPDF(c, h)
+	})
 
 	staticFS, err := fs.Sub(content, "static")
 	if err != nil {
