@@ -50,12 +50,21 @@ func (b *BGGimp) GetUserCollection(ctx context.Context, username string, useCach
 	collection = &UserCollection{
 		Username:   username,
 		Owned:      make(map[string]Boardgame),
+		Preordered: make(map[string]Boardgame),
 		WantToPlay: make(map[string]Boardgame),
 	}
 
 	for _, item := range colXML.Items {
 		if item.Status.Own == 1 {
 			collection.Owned[item.ObjectID] = Boardgame{
+				ObjectID: item.ObjectID,
+				Name:     item.Name,
+				NumPlays: item.NumPlays,
+			}
+		}
+
+		if item.Status.Preordered == 1 {
+			collection.Preordered[item.ObjectID] = Boardgame{
 				ObjectID: item.ObjectID,
 				Name:     item.Name,
 				NumPlays: item.NumPlays,
