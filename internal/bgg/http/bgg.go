@@ -1,12 +1,12 @@
 package http
 
 import (
+	"bghelper/pkg/utils/cache"
 	"bytes"
 	"context"
 	"encoding/xml"
 	"errors"
 	"fmt"
-	"github.com/renanzxc/BG-Helper/utils/cache"
 	"github.com/rotisserie/eris"
 	"io"
 	"net/http"

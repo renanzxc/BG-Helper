@@ -1,12 +1,12 @@
-package main
+package httphtml
 
 import (
+	"bghelper/pkg/utils/cache"
 	"embed"
 	"fmt"
 	"github.com/go-playground/validator/v10"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
-	"github.com/renanzxc/BG-Helper/utils/cache"
 	"github.com/rotisserie/eris"
 	"io/fs"
 	"net/http"

@@ -1,8 +1,8 @@
 package bgg
 
 import (
+	"bghelper/internal/bgg/http"
 	"context"
-	"github.com/renanzxc/BG-Helper/bgg/http"
 	"math"
 )
 

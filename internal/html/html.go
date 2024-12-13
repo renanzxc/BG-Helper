@@ -1,10 +1,10 @@
-package main
+package httphtml
 
 import (
+	"bghelper/internal/bgg"
+	bgghttp "bghelper/internal/bgg/http"
 	"bytes"
 	"github.com/labstack/echo/v4"
-	"github.com/renanzxc/BG-Helper/bgg"
-	bgghttp "github.com/renanzxc/BG-Helper/bgg/http"
 	"github.com/rotisserie/eris"
 	"io"
 	"net/http"
