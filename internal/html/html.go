@@ -4,12 +4,13 @@ import (
 	"bghelper/internal/bgg"
 	bgghttp "bghelper/internal/bgg/http"
 	"bytes"
-	"github.com/labstack/echo/v4"
-	"github.com/rotisserie/eris"
 	"io"
 	"net/http"
 	"sort"
 	"text/template"
+
+	"github.com/labstack/echo/v4"
+	"github.com/rotisserie/eris"
 )
 
 func playnext(c echo.Context, h *HTTPHTML) error {
