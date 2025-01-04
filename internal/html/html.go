@@ -3,6 +3,7 @@ package httphtml
 import (
 	"bghelper/internal/bgg"
 	bgghttp "bghelper/internal/bgg/http"
+	"bghelper/internal/config"
 	"bytes"
 	"io"
 	"net/http"
@@ -12,6 +13,20 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/rotisserie/eris"
 )
+
+func whoWillYouPlayWith(c echo.Context, h *HTTPHTML) error {
+	var tmpl *template.Template
+
+	file, err := content.ReadFile("templates/whoWillYouPlayWith.html")
+	if err != nil {
+		return eris.Wrap(err, "")
+	}
+	if tmpl, err = template.New("whoWillYouPlayWith").Parse(string(file)); err != nil {
+		return eris.Wrap(err, "")
+	}
+
+	return eris.Wrap(tmpl.Execute(c.Response().Writer, nil), "")
+}
 
 func playnext(c echo.Context, h *HTTPHTML) error {
 	err := playNextHTML(c, h, c.Response().Writer)
@@ -50,6 +65,7 @@ func playNextHTML(c echo.Context, h *HTTPHTML, writer io.Writer) (err error) {
 			ReloadCache   *bool  `query:"reload_cache"`
 			NumPlayers    string `query:"num_players"`
 		}
+		cfg = config.GetConfig()
 	)
 
 	if err = c.Bind(&reqParams); err != nil {
@@ -91,9 +107,11 @@ func playNextHTML(c echo.Context, h *HTTPHTML, writer io.Writer) (err error) {
 		Boardgames       []bgg.OwnedBoardgame
 		AnotherPlayer    string
 		NumPlayersFilter string
+		MyIPPort         string
 	}{
 		Boardgames:       boardgames,
 		AnotherPlayer:    reqParams.AnotherPlayer,
 		NumPlayersFilter: reqParams.NumPlayers,
+		MyIPPort:         cfg.GetMyIPPort(),
 	}), "")
 }

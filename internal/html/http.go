@@ -1,6 +1,7 @@
 package httphtml
 
 import (
+	"bghelper/internal/config"
 	"bghelper/pkg/utils/cache"
 	"bytes"
 	"embed"
@@ -87,6 +88,9 @@ func (h *HTTPHTML) Setup() (err error) {
 		})
 	}
 
+	h.echo.GET("/", func(c echo.Context) error {
+		return whoWillYouPlayWith(c, h)
+	})
 	h.echo.GET("/playnext/:username/with/:another_player", func(c echo.Context) error {
 		return playnext(c, h)
 	})
@@ -107,7 +111,8 @@ func (h *HTTPHTML) Setup() (err error) {
 
 func (h *HTTPHTML) Run() {
 	// Start server
-	h.echo.Logger.Fatal(h.echo.Start(":1323"))
+	cfg := config.GetConfig()
+	h.echo.Logger.Fatal(h.echo.Start(fmt.Sprintf(":%d", cfg.MyPort)))
 }
 
 func (h *HTTPHTML) Shutdown() {

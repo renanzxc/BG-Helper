@@ -1,0 +1,35 @@
+      
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset='utf-8'>
+    <title>Who will you play with?</title>
+</head>
+<body>
+    <div>
+        <p>Your nickname</p>
+        <input type="text" id="yourNickname">
+    </div>
+    <div>
+        <p>Player nickname you would play with next</p>
+        <input type="text" id="playerNickname">
+    </div>
+    <br>
+    <button onclick="redirectToGame()">Play next</button>
+</body>
+
+<script>
+    function redirectToGame() {
+        const yourNickname = document.getElementById('yourNickname').value;
+        const playerNickname = document.getElementById('playerNickname').value;
+
+        if (yourNickname.trim() !== "" || playerNickname.trim() !== "") { // Check if the input is not empty or just whitespace
+            window.location.href = `/playnext/${encodeURIComponent(yourNickname)}/with/${encodeURIComponent(playerNickname)}`;
+        } else {
+            alert("Please enter a name before proceeding."); // Or display an inline error message
+        }
+    }
+</script>
+</html>
+
+    
