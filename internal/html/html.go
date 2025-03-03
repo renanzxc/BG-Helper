@@ -3,7 +3,6 @@ package httphtml
 import (
 	"bghelper/internal/bgg"
 	bgghttp "bghelper/internal/bgg/http"
-	"bghelper/internal/config"
 	"bytes"
 	"io"
 	"net/http"
@@ -14,18 +13,44 @@ import (
 	"github.com/rotisserie/eris"
 )
 
-func whoWillYouPlayWith(c echo.Context, h *HTTPHTML) error {
-	var tmpl *template.Template
+func yourUsername(c echo.Context, h *HTTPHTML) error {
+	var (
+		tmpl *template.Template
+	)
 
-	file, err := content.ReadFile("templates/whoWillYouPlayWith.html")
+	file, err := content.ReadFile("templates/yourUsername.html")
 	if err != nil {
 		return eris.Wrap(err, "")
 	}
-	if tmpl, err = template.New("whoWillYouPlayWith").Parse(string(file)); err != nil {
+	if tmpl, err = template.New("yourUsername").Parse(string(file)); err != nil {
 		return eris.Wrap(err, "")
 	}
 
-	return eris.Wrap(tmpl.Execute(c.Response().Writer, nil), "")
+	return eris.Wrap(tmpl.Execute(c.Response().Writer, struct {
+		MyIPPort string
+	}{
+		MyIPPort: h.cfg.GetMyIPPort(),
+	}), "")
+}
+
+func whoPlayNext(c echo.Context, h *HTTPHTML) error {
+	var (
+		tmpl *template.Template
+	)
+
+	file, err := content.ReadFile("templates/whoPlayNext.html")
+	if err != nil {
+		return eris.Wrap(err, "")
+	}
+	if tmpl, err = template.New("whoPlayNext").Parse(string(file)); err != nil {
+		return eris.Wrap(err, "")
+	}
+
+	return eris.Wrap(tmpl.Execute(c.Response().Writer, struct {
+		MyIPPort string
+	}{
+		MyIPPort: h.cfg.GetMyIPPort(),
+	}), "")
 }
 
 func playnext(c echo.Context, h *HTTPHTML) error {
@@ -65,7 +90,6 @@ func playNextHTML(c echo.Context, h *HTTPHTML, writer io.Writer) (err error) {
 			ReloadCache   *bool  `query:"reload_cache"`
 			NumPlayers    string `query:"num_players"`
 		}
-		cfg = config.GetConfig()
 	)
 
 	if err = c.Bind(&reqParams); err != nil {
@@ -95,7 +119,7 @@ func playNextHTML(c echo.Context, h *HTTPHTML, writer io.Writer) (err error) {
 	})
 
 	// TODO: read file only one time
-	file, err := content.ReadFile("templates/playnext.html")
+	file, err := content.ReadFile("templates/playNextGames.html")
 	if err != nil {
 		return eris.Wrap(err, "")
 	}
@@ -112,6 +136,6 @@ func playNextHTML(c echo.Context, h *HTTPHTML, writer io.Writer) (err error) {
 		Boardgames:       boardgames,
 		AnotherPlayer:    reqParams.AnotherPlayer,
 		NumPlayersFilter: reqParams.NumPlayers,
-		MyIPPort:         cfg.GetMyIPPort(),
+		MyIPPort:         h.cfg.GetMyIPPort(),
 	}), "")
 }

@@ -25,6 +25,7 @@ type HTTPHTML struct {
 
 	cache    cache.Cache
 	validate *validator.Validate
+	cfg      config.Config
 }
 
 var (
@@ -33,6 +34,7 @@ var (
 )
 
 func (h *HTTPHTML) Setup() (err error) {
+	h.cfg = config.GetConfig()
 	h.cache, err = cache.NewJSONCache("./")
 	if err != nil {
 		return eris.Wrap(err, "")
@@ -89,7 +91,10 @@ func (h *HTTPHTML) Setup() (err error) {
 	}
 
 	h.echo.GET("/", func(c echo.Context) error {
-		return whoWillYouPlayWith(c, h)
+		return yourUsername(c, h)
+	})
+	h.echo.GET("/playnext", func(c echo.Context) error {
+		return whoPlayNext(c, h)
 	})
 	h.echo.GET("/playnext/:username/with/:another_player", func(c echo.Context) error {
 		return playnext(c, h)
